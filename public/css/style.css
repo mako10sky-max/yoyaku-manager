@@ -544,76 +544,99 @@ button { border: none; background: none; cursor: pointer; font-family: inherit; 
 }
 
 html {
-    font-size: 18px;
+    font-size: 16px;
     -webkit-text-size-adjust: 100%;
 }
 
-/* Responsive & Mobile Ultra-Legible Enhancements */
+/* ===== Mobile Layout Improvements ===== */
 @media (max-width: 767px) {
-    html {
-        font-size: 19px; /* スマホでより特大表示 */
-    }
-    body {
-        font-size: 1.05rem;
-    }
-    
-    .app-header {
-        height: 70px;
-    }
-    .header-content h1 {
-        font-size: 1.5rem;
-    }
-    .app-main {
-        padding: 85px 1.2rem 105px;
-    }
-    
-    /* Bigger Headers & Titles */
-    h2 { font-size: 1.85rem; }
-    .subtitle { font-size: 1rem; }
-    
-    /* Stats Card Extra Large */
-    .stat-value { font-size: 2.5rem; }
-    .stat-label { font-size: 0.95rem; font-weight: 500; }
-    
-    /* Reservation Card Extra Large Text & Padding */
-    .glass-card {
-        padding: 1.5rem;
-    }
-    .res-guest { font-size: 1.4rem; font-weight: 700; }
-    .res-dates { font-size: 1.15rem; font-weight: 500; }
-    .res-meta { font-size: 1.05rem; }
-    .badge { font-size: 0.95rem; padding: 0.4rem 0.85rem; }
-    
-    /* Extra Large Form Inputs & Selects */
+    html { font-size: 15px; }
+    body { font-size: 0.95rem; }
+
+    /* Header */
+    .app-header { height: 56px; }
+    .header-content h1 { font-size: 1.05rem; }
+    .app-main { padding: 72px 0.85rem 88px; }
+
+    /* Section titles */
+    h2 { font-size: 1.35rem; }
+    .subtitle { font-size: 0.82rem; }
+
+    /* Stats */
+    .stats-grid { gap: 0.65rem; margin-bottom: 1.25rem; }
+    .stat-value { font-size: 2rem; }
+    .stat-label { font-size: 0.78rem; }
+    .stat-icon { font-size: 1.25rem; }
+
+    /* Glass card: tighter on mobile */
+    .glass-card { padding: 0.9rem; }
+
+    /* === Reservation card overhaul === */
+    .res-card { gap: 0; padding: 0.85rem 0.9rem; }
+
+    /* Header row: badges left, warn-pill below */
+    .res-card-header { flex-direction: column; gap: 0.4rem; margin-bottom: 0.4rem; }
+
+    /* Badge wrap: smaller badges */
+    .badge { font-size: 0.7rem; padding: 0.25rem 0.55rem; }
+    .badge-warn-pill { font-size: 0.68rem; padding: 0.2rem 0.5rem; }
+    .badge-ok-pill   { font-size: 0.68rem; padding: 0.2rem 0.5rem; }
+
+    /* Field rows */
+    .res-field-row { padding: 0.3rem 0; gap: 0.5rem; }
+    .field-label   { font-size: 0.67rem; }
+    .field-val-main { font-size: 1rem; font-weight: 700; }
+    .field-val-sub  { font-size: 0.82rem; }
+    .field-val      { font-size: 0.88rem; }
+
+    /* ① 名前行: 縦積み（横並びだと狭い） */
+    .name-row { flex-direction: column; gap: 0.15rem; }
+    .booker-item { text-align: left; }
+
+    /* Room/guests & tier/allergy: 横並びを維持するが省スペース */
+    .room-guests-row { gap: 1rem; }
+    .allergy-tier-row { gap: 0.75rem; flex-wrap: wrap; }
+
+    /* Filter bar: compact */
+    .filter-bar { gap: 0.6rem; margin-bottom: 1rem; }
+    .filter-selects { gap: 0.5rem; flex-wrap: wrap; }
+    .filter-selects select { flex: 1 1 calc(50% - 0.25rem); min-width: 0; font-size: 0.82rem; padding: 0.6rem 0.75rem; padding-right: 1.75rem; }
+    .search-wrap input { font-size: 0.9rem; padding: 0.75rem 0.9rem 0.75rem 2.25rem; }
+
+    /* Filter chips */
+    .filter-quick-chips { flex-wrap: wrap; }
+    .filter-chip { font-size: 0.78rem; padding: 0.35rem 0.7rem; }
+
+    /* Forms */
     input, select, textarea {
-        font-size: 1.15rem;
-        padding: 1rem 1.2rem;
-        border-radius: 12px;
+        font-size: 1rem;
+        padding: 0.8rem 0.95rem;
+        border-radius: 10px;
     }
-    label {
-        font-size: 1.05rem;
-        font-weight: 600;
-        margin-bottom: 0.4rem;
-    }
-    
-    /* Extra Large Action Buttons */
-    .btn-primary {
-        padding: 1.3rem;
-        font-size: 1.2rem;
-        border-radius: 14px;
-    }
-    
-    /* Extra Large Bottom Navigation Bar */
-    .bottom-nav {
-        height: 80px;
-    }
-    .nav-item .icon {
-        font-size: 1.85rem;
-    }
-    .nav-item .label {
-        font-size: 0.85rem;
-        font-weight: 600;
-    }
+    label { font-size: 0.9rem; font-weight: 600; }
+
+    /* Buttons */
+    .btn-primary { padding: 1rem; font-size: 1rem; }
+
+    /* Bottom nav */
+    .bottom-nav { height: 62px; }
+    .nav-item .icon  { font-size: 1.45rem; }
+    .nav-item .label { font-size: 0.68rem; font-weight: 600; }
+
+    /* Calendar: smaller cells */
+    .cal-day { min-height: 48px; padding: 2px; }
+    .day-header { font-size: 0.7rem; }
+    .cal-chip { font-size: 0.58rem; }
+    .cal-weekdays { font-size: 0.7rem; }
+
+    /* Detail view */
+    .detail-item { padding: 0.75rem 0; }
+    .detail-label { font-size: 0.75rem; }
+    .detail-val { font-size: 0.92rem; }
+
+    /* Banners */
+    .unconfirmed-banner { padding: 0.65rem 0.8rem; font-size: 0.85rem; }
+    .confirmed-banner   { padding: 0.6rem 0.8rem;  font-size: 0.85rem; }
 }
 
 @media (min-width: 768px) {

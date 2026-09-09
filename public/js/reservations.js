@@ -96,16 +96,16 @@ const reservations = {
 
             // ① 宿泊者 & 予約者
             const guestText = r.guest_name ? `${r.guest_name} 様` : '<span class="warn-text">未入力⚠️</span>';
-            const bookerText = r.booker_name ? `${r.booker_name} 様` : '<span class="warn-badge">⚠️ 予約者要確認</span>';
+            const bookerText = r.booker_name ? `${r.booker_name} 様` : '<span class="warn-badge">⚠️ 要確認</span>';
 
             // ② 宿泊カレンダー / 日程
             const datesText = (r.check_in && r.check_out)
                 ? `${app.formatDateWithDay(r.check_in)} 〜 ${app.formatDateWithDay(r.check_out)} (${nights}泊)`
-                : '<span class="warn-text">⚠️ 宿泊日程要確認</span>';
+                : '<span class="warn-text">⚠️ 日程要確認</span>';
 
             // ③ 部屋番号、人数
-            const roomText = r.room_number ? `${r.room_number}号室` : '<span class="warn-badge">🚪 部屋未定(要確認)</span>';
-            const guestsText = r.num_guests ? `${r.num_guests}名` : '<span class="warn-text">⚠️ 人数要確認</span>';
+            const roomText = r.room_number ? `${r.room_number}号室` : '<span class="warn-badge">🚪 未定</span>';
+            const guestsText = r.num_guests ? `${r.num_guests}名` : '<span class="warn-text">⚠️</span>';
 
             // ④ 価格対象
             const tierBadge = app.getBadgeHtml('price_tier', r.price_tier);
@@ -113,32 +113,33 @@ const reservations = {
             // ⑤ アレルギー
             let allergyDisplay = '';
             if (r.allergy_status === 'has' || r.has_allergy === 1) {
-                allergyDisplay = `<span class="badge badge-allergy allergy-has">🚨 アレルギーあり: ${r.allergies || '詳細確認要'}</span>`;
+                allergyDisplay = `<span class="badge badge-allergy allergy-has">🚨 あり: ${r.allergies || '詳細確認要'}</span>`;
             } else if (r.allergy_status === 'none') {
-                allergyDisplay = `<span class="badge badge-allergy allergy-none">✅ アレルギーなし</span>`;
+                allergyDisplay = `<span class="badge badge-allergy allergy-none">✅ なし</span>`;
             } else {
-                allergyDisplay = `<span class="badge badge-allergy allergy-unconfirmed">⚠️ アレルギー要確認</span>`;
+                allergyDisplay = `<span class="badge badge-allergy allergy-unconfirmed">⚠️ 要確認</span>`;
             }
 
             // ⑥ 予約経路
             const sourceBadge = app.getBadgeHtml('source', r.source);
             const statusBadge = app.getBadgeHtml('status', r.status);
 
+            // 要確認項目テキスト（短縮）
+            const warnLabel = hasWarning
+                ? `<span class="badge badge-warn-pill">⚠️ ${unconfirmed.join(' / ')}</span>`
+                : `<span class="badge badge-ok-pill">✅ 確認済</span>`;
+
             return `
                 <div class="res-card glass-card ${hasWarning ? 'has-unconfirmed-border' : ''}" onclick="reservations.openDetail(${r.id})">
-                    <!-- ヘッダー：要確認サマリー ＆ バッジ -->
+                    <!-- ヘッダー：バッジ行 + 要確認ラベル -->
                     <div class="res-card-header">
-                        <div class="badges-wrap" style="width: 100%; justify-content: space-between; margin-bottom: 0.25rem;">
-                            <div style="display:flex; gap:0.4rem; align-items:center; flex-wrap:wrap;">
-                                ${sourceBadge}
-                                ${statusBadge}
-                                ${tierBadge}
-                            </div>
-                            ${hasWarning ? `<span class="badge badge-warn-pill">⚠️ 要確認: ${unconfirmed.join('・')}</span>` : `<span class="badge badge-ok-pill">✅ 確認済</span>`}
+                        <div style="display:flex; gap:0.35rem; align-items:center; flex-wrap:wrap;">
+                            ${sourceBadge}${statusBadge}${tierBadge}
                         </div>
+                        ${warnLabel}
                     </div>
 
-                    <!-- ① 宿泊者氏名の横に予約者氏名 -->
+                    <!-- ① 宿泊者氏名 & 予約者氏名 (縦積み) -->
                     <div class="res-field-row name-row">
                         <div class="field-item">
                             <span class="field-label">① 宿泊者</span>
@@ -150,9 +151,9 @@ const reservations = {
                         </div>
                     </div>
 
-                    <!-- ② 宿泊カレンダー (日程) -->
+                    <!-- ② 宿泊日程 -->
                     <div class="res-field-row">
-                        <div class="field-item">
+                        <div class="field-item" style="width:100%;">
                             <span class="field-label">② 宿泊日程</span>
                             <span class="field-val">📅 ${datesText}</span>
                         </div>
@@ -161,22 +162,22 @@ const reservations = {
                     <!-- ③ 部屋番号、人数 -->
                     <div class="res-field-row room-guests-row">
                         <div class="field-item">
-                            <span class="field-label">③ 部屋番号</span>
+                            <span class="field-label">③ 部屋</span>
                             <span class="field-val">🚪 ${roomText}</span>
                         </div>
                         <div class="field-item">
-                            <span class="field-label">宿泊人数</span>
+                            <span class="field-label">人数</span>
                             <span class="field-val">👥 ${guestsText}</span>
                         </div>
                     </div>
 
-                    <!-- ④ 価格対象 ＆ ⑤ アレルギー -->
+                    <!-- ④ 価格対象 & ⑤ アレルギー -->
                     <div class="res-field-row allergy-tier-row">
                         <div class="field-item">
-                            <span class="field-label">④ 価格対象</span>
+                            <span class="field-label">④ 価格</span>
                             <span class="field-val">${tierBadge}</span>
                         </div>
-                        <div class="field-item" style="flex: 1.5;">
+                        <div class="field-item">
                             <span class="field-label">⑤ アレルギー</span>
                             <span class="field-val">${allergyDisplay}</span>
                         </div>
@@ -185,6 +186,7 @@ const reservations = {
             `;
         }).join('');
     },
+
 
     setupForm() {
         const form = document.getElementById('form-add-reservation');
