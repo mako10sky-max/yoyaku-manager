@@ -8,7 +8,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="css/style.css?v=8">
+    <link rel="stylesheet" href="css/style.css?v=9">
 </head>
 <body>
     <header class="app-header">
@@ -65,9 +65,14 @@
 
         <!-- List View -->
         <section id="view-list" class="view-section">
-            <div class="view-header">
-                <h2>予約一覧</h2>
-                <p class="subtitle">未確認項目がある予約には ⚠️ 要確認 が表示されます</p>
+            <div class="view-header" style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 0.6rem;">
+                <div>
+                    <h2>予約一覧</h2>
+                    <p class="subtitle">未確認項目がある予約には ⚠️ 要確認 が表示されます</p>
+                </div>
+                <button type="button" class="btn-secondary btn-print-export" onclick="reservations.exportPdf()" title="予約一覧をPDF保存・印刷します">
+                    <span>📄</span> <span>PDF出力 / 印刷</span>
+                </button>
             </div>
             
             <div class="filter-bar">
@@ -298,12 +303,15 @@
         </button>
     </nav>
 
+    <!-- Print Area (印刷・PDF出力専用エリア) -->
+    <div id="print-area"></div>
+
     <!-- Toast Container -->
     <div id="toast-container" class="toast-container"></div>
 
-    <script src="js/app.js?v=8"></script>
-    <script src="js/dashboard.js?v=8"></script>
-    <script src="js/reservations.js?v=8"></script>
-    <script src="js/calendar.js?v=8"></script>
+    <script src="js/app.js?v=9"></script>
+    <script src="js/dashboard.js?v=9"></script>
+    <script src="js/reservations.js?v=9"></script>
+    <script src="js/calendar.js?v=9"></script>
 </body>
 </html>

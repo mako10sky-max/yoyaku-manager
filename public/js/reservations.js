@@ -2,6 +2,7 @@ const reservations = {
     isEditing: false,
     currentId: null,
     filterOnlyUnconfirmed: false,
+    currentData: [],
 
     init() {
         this.setupFilters();
@@ -74,6 +75,7 @@ const reservations = {
         const res = await app.apiGet(url);
 
         if (!res || !res.success || !res.data || res.data.length === 0) {
+            this.currentData = [];
             container.innerHTML = app.getEmptyStateHtml('条件に一致する予約が見つかりません');
             return;
         }
@@ -84,10 +86,13 @@ const reservations = {
         if (this.filterOnlyUnconfirmed) {
             data = data.filter(r => app.getUnconfirmedItems(r).length > 0);
             if (data.length === 0) {
+                this.currentData = [];
                 container.innerHTML = app.getEmptyStateHtml('要確認の予約はありません（すべて確認済みです！）');
                 return;
             }
         }
+
+        this.currentData = data;
 
         container.innerHTML = data.map(r => {
             const unconfirmed = app.getUnconfirmedItems(r);
@@ -551,6 +556,146 @@ const reservations = {
             console.error(e);
             app.showToast('カレンダー連携エラー', 'error');
         }
+    },
+
+    exportPdf() {
+        const data = this.currentData || [];
+        if (!data || data.length === 0) {
+            app.showToast('出力対象の予約データがありません', 'warning');
+            return;
+        }
+
+        const printArea = document.getElementById('print-area');
+        if (!printArea) return;
+
+        // 集計
+        const totalCount = data.length;
+        const unconfirmedReservations = data.filter(r => app.getUnconfirmedItems(r).length > 0);
+        const unconfirmedCount = unconfirmedReservations.length;
+
+        // 発行日時
+        const now = new Date();
+        const nowStr = `${now.getFullYear()}年${now.getMonth() + 1}月${now.getDate()}日 ${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+
+        // テーブル行作成
+        const rowsHtml = data.map((r, idx) => {
+            const unconfirmed = app.getUnconfirmedItems(r);
+            const hasWarn = unconfirmed.length > 0;
+            const nights = this.calculateNights(r.check_in, r.check_out);
+
+            // 宿泊日程
+            const dateStr = (r.check_in && r.check_out)
+                ? `${app.formatDateWithDay(r.check_in)} 〜 ${app.formatDateWithDay(r.check_out)} (${nights}泊)`
+                : '<span style="color:#b91c1c; font-weight:bold;">未設定⚠️</span>';
+
+            // 部屋番号
+            const roomStr = r.room_number ? `${r.room_number}号室` : '<span style="color:#b91c1c; font-weight:bold;">未定⚠️</span>';
+
+            // 宿泊者・予約者
+            const guestStr = r.guest_name ? `${r.guest_name} 様` : '<span style="color:#b91c1c; font-weight:bold;">未入力⚠️</span>';
+            const bookerStr = r.booker_name ? `${r.booker_name} 様` : '<span style="color:#b91c1c; font-weight:bold;">未確認⚠️</span>';
+
+            // 人数
+            const guestsStr = r.num_guests ? `${r.num_guests}名` : '1名';
+
+            // 価格対象
+            let tierStr = '<span class="print-badge print-badge-warn">未確認⚠️</span>';
+            if (r.price_tier === 'general') tierStr = '<span class="print-badge">一般</span>';
+            else if (r.price_tier === 's_guest') tierStr = '<span class="print-badge" style="background:#fef3c7; color:#92400e; border-color:#fcd34d;">⭐Sゲスト</span>';
+
+            // アレルギー
+            let allergyStr = '<span class="print-badge print-badge-warn">未確認⚠️</span>';
+            if (r.allergy_status === 'none') allergyStr = '<span class="print-badge print-badge-ok">なし</span>';
+            else if (r.allergy_status === 'has') allergyStr = `<span class="print-badge print-badge-warn" style="background:#fee2e2; color:#b91c1c;">🚨あり: ${r.allergies || '要詳細確認'}</span>`;
+
+            // 予約経路
+            const sourceMap = { line: 'LINE', email: 'Mail', front: '店頭', phone: '電話', other: 'その他' };
+            const sourceStr = sourceMap[r.source] || r.source || '-';
+
+            // ステータス
+            const statusMap = { confirmed: '確定', tentative: '仮予約', cancelled: 'キャンセル' };
+            const statusStr = statusMap[r.status] || r.status || '-';
+
+            // 要確認内容
+            const warnCell = hasWarn
+                ? `<span class="print-badge print-badge-warn">⚠️ ${unconfirmed.join(', ')}</span>`
+                : `<span class="print-badge print-badge-ok">✅ 確認済</span>`;
+
+            // 料金
+            const priceStr = r.price ? `¥${Number(r.price).toLocaleString()}` : '-';
+
+            // メモ・連絡先
+            const contactStr = r.contact ? `[連絡先: ${r.contact}] ` : '';
+            const rawNote = (contactStr + (r.notes || '')).trim();
+            const noteStr = rawNote ? rawNote.replace(/\n/g, ' ') : '-';
+
+            return `
+                <tr ${hasWarn ? 'class="print-warn-row"' : ''}>
+                    <td style="text-align:center; font-weight:bold;">${idx + 1}</td>
+                    <td style="font-weight:600; white-space:nowrap;">${dateStr}</td>
+                    <td style="text-align:center; font-weight:bold;">${roomStr}</td>
+                    <td style="font-weight:bold;">${guestStr}</td>
+                    <td>${bookerStr}</td>
+                    <td style="text-align:center;">${guestsStr}</td>
+                    <td style="text-align:center;">${tierStr}</td>
+                    <td>${allergyStr}</td>
+                    <td style="text-align:center;">${sourceStr}</td>
+                    <td style="text-align:center;">${statusStr}</td>
+                    <td style="text-align:center;">${priceStr}</td>
+                    <td style="text-align:center;">${warnCell}</td>
+                    <td style="font-size:8pt; max-width:180px; word-break:break-all;">${noteStr}</td>
+                </tr>
+            `;
+        }).join('');
+
+        // 印刷エリアへのHTML挿入
+        printArea.innerHTML = `
+            <div class="print-header">
+                <div>
+                    <h1>宿泊予約一覧表 (台帳)</h1>
+                    <div style="font-size:8.5pt; color:#64748b; margin-top:2px;">Mrs. Ishii's Reservation Management System</div>
+                </div>
+                <div class="print-header-meta">
+                    <div>出力日時: <strong>${nowStr}</strong></div>
+                    <div>全表示件数: <strong>${totalCount}件</strong> ｜ 要確認: <strong style="color:${unconfirmedCount > 0 ? '#b91c1c' : '#047857'}; font-size:10pt;">${unconfirmedCount}件</strong></div>
+                </div>
+            </div>
+
+            <table class="print-table">
+                <thead>
+                    <tr>
+                        <th style="width:25px;">No.</th>
+                        <th style="width:130px;">宿泊日程</th>
+                        <th style="width:45px;">部屋</th>
+                        <th style="width:85px;">① 宿泊者名</th>
+                        <th style="width:85px;">① 予約者名</th>
+                        <th style="width:35px;">人数</th>
+                        <th style="width:65px;">④ 価格区分</th>
+                        <th style="width:90px;">⑤ アレルギー</th>
+                        <th style="width:45px;">⑥ 経路</th>
+                        <th style="width:45px;">状態</th>
+                        <th style="width:60px;">料金</th>
+                        <th style="width:90px;">確認状況</th>
+                        <th>備考・連絡先</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    ${rowsHtml}
+                </tbody>
+            </table>
+
+            <div class="print-footer">
+                <div>※ 印刷ダイアログの「送信先 / プリンター」で<strong>「PDFに保存」</strong>を選択するとPDFファイルとしてダウンロードできます。</div>
+                <div>発行元: Mrs. Ishii's Reservation Management System</div>
+            </div>
+        `;
+
+        app.showToast('印刷・PDF保存画面を開きます（送信先で「PDFに保存」を選択してください）', 'info');
+
+        // レンダリング完了後に印刷ダイアログを開く
+        setTimeout(() => {
+            window.print();
+        }, 250);
     }
 };
 

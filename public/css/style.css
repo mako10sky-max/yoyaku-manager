@@ -647,3 +647,154 @@ html {
     .app-main { padding-bottom: 2rem; }
     .nav-desktop { display: flex; gap: 2rem; }
 }
+
+/* ===== PDF / Print Export Styles ===== */
+.btn-print-export {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.45rem 0.85rem;
+    font-size: 0.85rem;
+    font-weight: 600;
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: var(--radius-sm);
+    color: #e2e8f0;
+    cursor: pointer;
+    transition: var(--transition);
+}
+.btn-print-export:hover {
+    background: rgba(255, 255, 255, 0.16);
+    color: #ffffff;
+    border-color: rgba(255, 255, 255, 0.35);
+}
+
+/* 画面表示時は印刷エリアを完全非表示 */
+#print-area {
+    display: none;
+}
+
+/* 印刷・PDF保存時の専用スタイル */
+@media print {
+    @page {
+        size: A4 landscape;
+        margin: 8mm 6mm;
+    }
+    
+    html, body {
+        background: #ffffff !important;
+        color: #111827 !important;
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Hiragino Kaku Gothic ProN", "BIZ UDPGothic", Meiryo, sans-serif !important;
+        font-size: 10pt !important;
+        line-height: 1.35 !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+    }
+
+    /* 通常画面のUIをすべて非表示 */
+    .app-header,
+    .app-main,
+    .bottom-nav,
+    .toast-container {
+        display: none !important;
+    }
+
+    /* 印刷エリアを表示 */
+    #print-area {
+        display: block !important;
+        width: 100% !important;
+        background: #ffffff !important;
+        color: #111827 !important;
+    }
+
+    /* 印刷用ヘッダー */
+    .print-header {
+        border-bottom: 2px solid #0f172a;
+        padding-bottom: 8px;
+        margin-bottom: 10px;
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-end;
+    }
+    .print-header h1 {
+        font-size: 16pt !important;
+        font-weight: 700 !important;
+        color: #0f172a !important;
+        margin: 0 !important;
+    }
+    .print-header-meta {
+        font-size: 8.5pt !important;
+        color: #475569 !important;
+        text-align: right;
+    }
+
+    /* 印刷テーブル */
+    .print-table {
+        width: 100% !important;
+        border-collapse: collapse !important;
+        font-size: 8.5pt !important;
+        page-break-after: auto;
+    }
+    .print-table th {
+        background-color: #f1f5f9 !important;
+        color: #0f172a !important;
+        font-weight: 700 !important;
+        border: 1px solid #94a3b8 !important;
+        padding: 5px 4px !important;
+        text-align: center !important;
+        white-space: nowrap !important;
+    }
+    .print-table td {
+        border: 1px solid #cbd5e1 !important;
+        padding: 4px 5px !important;
+        vertical-align: middle !important;
+        color: #1e293b !important;
+    }
+    .print-table tr:nth-child(even) td {
+        background-color: #f8fafc !important;
+    }
+    .print-table tr {
+        page-break-inside: avoid !important;
+    }
+
+    /* 要確認アラートセル強調 */
+    .print-warn-cell {
+        background-color: #fef2f2 !important;
+        color: #b91c1c !important;
+        font-weight: 700 !important;
+        border: 1.5px solid #f87171 !important;
+    }
+    .print-badge {
+        display: inline-block !important;
+        padding: 1px 4px !important;
+        border-radius: 3px !important;
+        font-size: 7.5pt !important;
+        font-weight: 600 !important;
+        border: 1px solid #cbd5e1 !important;
+    }
+    .print-badge-warn {
+        background-color: #fee2e2 !important;
+        color: #991b1b !important;
+        border-color: #fca5a5 !important;
+        font-weight: 700 !important;
+    }
+    .print-badge-ok {
+        background-color: #ecfdf5 !important;
+        color: #065f46 !important;
+        border-color: #a7f3d0 !important;
+    }
+
+    /* 印刷フッター */
+    .print-footer {
+        margin-top: 10px;
+        padding-top: 6px;
+        border-top: 1px solid #e2e8f0;
+        font-size: 8pt;
+        color: #64748b;
+        display: flex;
+        justify-content: space-between;
+    }
+}
+
