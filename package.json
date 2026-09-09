@@ -1,0 +1,17 @@
+{
+  "name": "mrs-ishiis-reservation-management-system",
+  "version": "1.0.0",
+  "description": "Mrs. Ishii's Reservation Management System",
+  "main": "server/index.js",
+  "scripts": {
+    "start": "node server/index.js",
+    "dev": "node --watch server/index.js"
+  },
+  "dependencies": {
+    "express": "^4.18.2",
+    "better-sqlite3": "^11.0.0",
+    "@line/bot-sdk": "^9.0.0",
+    "dotenv": "^16.3.1",
+    "cors": "^2.8.5"
+  }
+}

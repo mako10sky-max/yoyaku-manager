@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#0f1117">
+    <title>Mrs. Ishii's Reservation Management System</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/style.css?v=5">
+</head>
+<body>
+    <header class="app-header">
+        <div class="header-content">
+            <h1>Mrs. Ishii's Reservation Management System</h1>
+            <div class="header-actions">
+                <button class="icon-btn" aria-label="Notifications">🔔</button>
+                <div class="avatar">Admin</div>
+            </div>
+        </div>
+    </header>
+
+    <main class="app-main">
+        <!-- Dashboard View -->
+        <section id="view-dashboard" class="view-section active">
+            <div class="view-header">
+                <h2>ダッシュボード</h2>
+                <p class="subtitle">本日の概要と最近の予約</p>
+            </div>
+            
+            <div class="stats-grid" id="dashboard-stats">
+                <!-- Stats will be loaded here -->
+            </div>
+
+            <!-- Google Calendar Sync Banner -->
+            <div class="glass-card" style="margin-bottom: 2rem; border-left: 4px solid #4285F4; display: flex; flex-direction: column; gap: 0.75rem;">
+                <div style="display: flex; align-items: center; justify-content: space-between;">
+                    <h3 style="font-size: 1.15rem; color: #fff; display: flex; align-items: center; gap: 0.5rem;">
+                        <span>📅</span> Googleカレンダー自動同期
+                    </h3>
+                    <span class="badge" style="background: rgba(66, 133, 244, 0.2); color: #8ab4f8; font-weight: bold;">自動連動</span>
+                </div>
+                <p style="font-size: 0.9rem; color: var(--text-secondary); line-height: 1.4;">
+                    Googleカレンダーに一度登録するだけで、LINEや手動で入った全宿泊予約が<strong>カレンダー上に全自動でリアルタイム同期</strong>されます！
+                </p>
+                <div style="display: flex; gap: 0.75rem; flex-wrap: wrap; margin-top: 0.25rem;">
+                    <button class="btn-secondary" style="background: rgba(66, 133, 244, 0.25); color: #fff; font-weight: 600; padding: 0.75rem 1rem;" onclick="app.copyCalendarFeedUrl()">
+                        📋 同期URLをコピー
+                    </button>
+                    <button class="btn-text" style="color: #8ab4f8;" onclick="window.open('https://calendar.google.com/calendar/r/settings/addbyurl', '_blank')">
+                        Googleカレンダーを開く ↗
+                    </button>
+                </div>
+            </div>
+
+            <div class="section-title-wrap">
+                <h3>最近の予約</h3>
+                <button class="btn-text" onclick="app.navigateTo('view-list')">すべて見る</button>
+            </div>
+            <div class="recent-list" id="dashboard-recent">
+                <!-- Recent reservations will be loaded here -->
+            </div>
+        </section>
+
+        <!-- List View -->
+        <section id="view-list" class="view-section">
+            <div class="view-header">
+                <h2>予約一覧</h2>
+            </div>
+            
+            <div class="filter-bar">
+                <div class="search-wrap">
+                    <span class="icon">🔍</span>
+                    <input type="text" id="filter-search" placeholder="ゲスト名で検索...">
+                </div>
+                <div class="filter-selects">
+                    <select id="filter-status">
+                        <option value="">すべてのステータス</option>
+                        <option value="confirmed">確定</option>
+                        <option value="tentative">仮予約</option>
+                        <option value="cancelled">キャンセル</option>
+                    </select>
+                    <select id="filter-source">
+                        <option value="">すべてのソース</option>
+                        <option value="website">自社サイト</option>
+                        <option value="ota">OTA</option>
+                        <option value="phone">電話</option>
+                        <option value="email">メール</option>
+                        <option value="line">LINE</option>
+                        <option value="other">その他</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="reservation-list" id="reservation-list">
+                <!-- List will be loaded here -->
+            </div>
+        </section>
+
+        <!-- Add View -->
+        <section id="view-add" class="view-section">
+            <div class="view-header">
+                <h2>新規予約追加</h2>
+            </div>
+            
+            <form id="form-add-reservation" class="form-container glass-card">
+                <div class="form-group">
+                    <label for="add-guest-name">ゲスト名 <span class="required">*</span></label>
+                    <input type="text" id="add-guest-name" required placeholder="例: 山田 太郎">
+                </div>
+                <div class="form-group">
+                    <label for="add-booker-name">予約者名 (ゲストと異なる場合)</label>
+                    <input type="text" id="add-booker-name" placeholder="例: 鈴木 一郎">
+                </div>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="add-check-in">チェックイン <span class="required">*</span></label>
+                        <input type="date" id="add-check-in" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="add-check-out">チェックアウト <span class="required">*</span></label>
+                        <input type="date" id="add-check-out" required>
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="add-num-guests">宿泊人数</label>
+                        <input type="number" id="add-num-guests" min="1" value="2">
+                    </div>
+                    <div class="form-group">
+                        <label for="add-room-type">部屋タイプ</label>
+                        <select id="add-room-type">
+                            <option value="single">シングル</option>
+                            <option value="double" selected>ダブル</option>
+                            <option value="twin">ツイン</option>
+                            <option value="suite">スイート</option>
+                            <option value="family">ファミリー</option>
+                            <option value="other">その他</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="add-room-number">部屋番号</label>
+                    <input type="text" id="add-room-number" placeholder="例: 202">
+                </div>
+
+                <div class="form-group">
+                    <label for="add-price">料金 (円)</label>
+                    <input type="number" id="add-price" min="0" step="1000">
+                </div>
+
+                <div class="form-group">
+                    <label for="add-contact">連絡先 (電話/メール)</label>
+                    <input type="text" id="add-contact" placeholder="090-XXXX-XXXX">
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="add-status">ステータス</label>
+                        <select id="add-status">
+                            <option value="confirmed">確定</option>
+                            <option value="tentative">仮予約</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="add-source">予約経路</label>
+                        <select id="add-source">
+                            <option value="website">自社サイト</option>
+                            <option value="ota">OTA</option>
+                            <option value="phone">電話</option>
+                            <option value="email">メール</option>
+                            <option value="line">LINE</option>
+                            <option value="other">その他</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="add-has-allergy">アレルギー有無</label>
+                    <select id="add-has-allergy" onchange="document.getElementById('add-allergy-detail-wrap').style.display = this.value === '1' ? 'block' : 'none'">
+                        <option value="0" selected>なし</option>
+                        <option value="1">あり ⚠️</option>
+                    </select>
+                </div>
+
+                <div class="form-group" id="add-allergy-detail-wrap" style="display: none;">
+                    <label for="add-allergies" style="color:var(--danger); font-weight:bold;">⚠️ アレルギー詳細内容</label>
+                    <input type="text" id="add-allergies" placeholder="例: エビ・カニ、そば、卵">
+                </div>
+
+                <div class="form-group">
+                    <label for="add-notes">社内メモ</label>
+                    <textarea id="add-notes" rows="3"></textarea>
+                </div>
+
+                <div class="form-actions">
+                    <button type="submit" class="btn-primary">予約を追加する</button>
+                </div>
+            </form>
+        </section>
+
+        <!-- Detail View -->
+        <section id="view-detail" class="view-section">
+            <div class="view-header with-back">
+                <button class="btn-back icon-btn" onclick="app.navigateTo('view-list')">←</button>
+                <h2>予約詳細</h2>
+                <div class="detail-actions">
+                    <button id="btn-edit-toggle" class="btn-secondary">編集</button>
+                </div>
+            </div>
+
+            <div id="detail-content" class="detail-container">
+                <!-- Content will be loaded here -->
+            </div>
+            
+            <!-- Quick Actions (View Mode) -->
+            <div id="detail-quick-actions" class="quick-actions glass-card">
+                <h3>ステータス変更</h3>
+                <div class="action-buttons">
+                    <button class="btn-status btn-confirm" onclick="reservations.updateStatus('confirmed')">確定にする</button>
+                    <button class="btn-status btn-cancel" onclick="reservations.updateStatus('cancelled')">キャンセル</button>
+                </div>
+                <div class="danger-zone">
+                    <button class="btn-text danger" onclick="reservations.deleteCurrent()">この予約を削除</button>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <nav class="bottom-nav">
+        <button class="nav-item active" data-target="view-dashboard">
+            <span class="icon">🏠</span>
+            <span class="label">ダッシュボード</span>
+        </button>
+        <button class="nav-item" data-target="view-list">
+            <span class="icon">📋</span>
+            <span class="label">予約一覧</span>
+        </button>
+        <button class="nav-item" data-target="view-add">
+            <span class="icon">➕</span>
+            <span class="label">追加</span>
+        </button>
+    </nav>
+
+    <!-- Toast Container -->
+    <div id="toast-container" class="toast-container"></div>
+
+    <script src="js/app.js?v=6"></script>
+    <script src="js/dashboard.js?v=6"></script>
+    <script src="js/reservations.js?v=6"></script>
+</body>
+</html>
