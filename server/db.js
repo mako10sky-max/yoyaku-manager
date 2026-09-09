@@ -221,12 +221,16 @@ function getStats() {
         return acc;
     }, { confirmed: 0, tentative: 0, cancelled: 0 });
 
-    // 未確認項目のカウント (要確認件数)
+    // 未確認項目のカウント (要確認件数) ※フロントのgetUnconfirmedItems()と同じ条件①〜⑤
     const unconfirmedCount = db.prepare(`
         SELECT COUNT(*) as count FROM reservations 
         WHERE status != 'cancelled' AND (
+            guest_name IS NULL OR guest_name = '' OR
             booker_name IS NULL OR booker_name = '' OR
+            check_in IS NULL OR check_in = '' OR
+            check_out IS NULL OR check_out = '' OR
             room_number IS NULL OR room_number = '' OR room_number = '未定' OR
+            num_guests IS NULL OR num_guests <= 0 OR
             price_tier IS NULL OR price_tier = 'unconfirmed' OR price_tier = '' OR
             allergy_status IS NULL OR allergy_status = 'unconfirmed' OR allergy_status = ''
         )
