@@ -64,10 +64,13 @@ async function handleEvent(event) {
         // DBに仮予約として登録
         const reservationData = {
             guest_name: guestName,
+            booker_name: guestName, // LINE送信者を予約者名として初期セット
             check_in: checkIn,
             check_out: checkOut,
             num_guests: numGuests,
-            room_number: roomNumber,
+            room_number: roomNumber || '',
+            price_tier: 'unconfirmed',
+            allergy_status: allergyInfo.hasAllergy ? 'has' : 'unconfirmed',
             has_allergy: allergyInfo.hasAllergy ? 1 : 0,
             allergies: allergyInfo.details,
             status: 'tentative',

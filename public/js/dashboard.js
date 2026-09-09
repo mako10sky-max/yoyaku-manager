@@ -26,10 +26,10 @@ const dashboard = {
                     <span class="stat-value">${d.bookingsThisMonth || 0}</span>
                     <span class="stat-label">今月予約数</span>
                 </div>
-                <div class="stat-card glass-card">
-                    <span class="stat-icon">⏳</span>
-                    <span class="stat-value">${(d.statusCounts && d.statusCounts.tentative) || 0}</span>
-                    <span class="stat-label">仮予約</span>
+                <div class="stat-card glass-card ${d.unconfirmedCount > 0 ? 'stat-card-warn' : ''}" style="cursor:pointer;" onclick="reservations.filterOnlyUnconfirmed=true; const b=document.getElementById('filter-btn-unconfirmed'); if(b) b.classList.add('active'); app.navigateTo('view-list');">
+                    <span class="stat-icon">${d.unconfirmedCount > 0 ? '⚠️' : '⏳'}</span>
+                    <span class="stat-value" style="${d.unconfirmedCount > 0 ? 'color:var(--danger);' : ''}">${d.unconfirmedCount || 0}</span>
+                    <span class="stat-label">${d.unconfirmedCount > 0 ? '要確認の予約 (タップ)' : '要確認なし'}</span>
                 </div>
             `;
         }
@@ -37,21 +37,42 @@ const dashboard = {
         const recentData = await app.apiGet('/api/reservations/recent?limit=5');
 
         if (recentData && recentData.success && recentData.data.length > 0) {
-            recentContainer.innerHTML = recentData.data.map(res => `
-                <div class="res-card glass-card" onclick="reservations.openDetail(${res.id})">
-                    <div class="res-card-header">
-                        <span class="res-guest">${res.guest_name}様</span>
-                        <div class="badges-wrap">
-                            ${res.room_number ? `<span class="badge" style="background:rgba(129,140,248,0.2); color:#a5b4fc; font-weight:bold;">🚪 ${res.room_number}号室</span>` : ''}
-                            ${app.getBadgeHtml('status', res.status)}
-                            ${app.getBadgeHtml('source', res.source)}
+            recentContainer.innerHTML = recentData.data.map(res => {
+                const unconfirmed = app.getUnconfirmedItems(res);
+                const hasWarning = unconfirmed.length > 0;
+                
+                return `
+                    <div class="res-card glass-card ${hasWarning ? 'has-unconfirmed-border' : ''}" onclick="reservations.openDetail(${res.id})">
+                        <div class="res-card-header">
+                            <div class="badges-wrap" style="width:100%; justify-content:space-between; margin-bottom:0.25rem;">
+                                <div style="display:flex; gap:0.4rem; align-items:center;">
+                                    ${app.getBadgeHtml('source', res.source)}
+                                    ${app.getBadgeHtml('price_tier', res.price_tier)}
+                                </div>
+                                ${hasWarning ? `<span class="badge badge-warn-pill">⚠️ 要確認: ${unconfirmed.join('・')}</span>` : '<span class="badge badge-ok-pill">✅ 確認済</span>'}
+                            </div>
+                        </div>
+                        <div class="res-field-row name-row">
+                            <div class="field-item">
+                                <span class="field-label">① 宿泊者</span>
+                                <span class="field-val-main">👤 ${res.guest_name} 様</span>
+                            </div>
+                            <div class="field-item booker-item">
+                                <span class="field-label">予約者</span>
+                                <span class="field-val-sub">🤝 ${res.booker_name ? `${res.booker_name} 様` : '<span class="warn-badge">要確認⚠️</span>'}</span>
+                            </div>
+                        </div>
+                        <div class="res-dates" style="margin-top:0.35rem;">
+                            <span>📅 ${app.formatDateWithDay(res.check_in)} 〜 ${app.formatDateWithDay(res.check_out)}</span>
+                        </div>
+                        <div class="res-meta" style="margin-top:0.35rem;">
+                            <span>🚪 ${res.room_number ? `${res.room_number}号室` : '<span class="warn-text">部屋未定⚠️</span>'}</span>
+                            <span>👥 ${res.num_guests || 1}名</span>
+                            <span>${(res.allergy_status === 'has' || res.has_allergy === 1) ? '<span style="color:var(--danger); font-weight:bold;">🚨 アレルギーあり</span>' : (res.allergy_status === 'none' ? 'アレルギーなし' : '<span class="warn-text">アレルギー要確認⚠️</span>')}</span>
                         </div>
                     </div>
-                    <div class="res-dates">
-                        <span>🗓 ${app.formatDate(res.check_in)} - ${app.formatDate(res.check_out)} (${res.num_guests || 1}名)</span>
-                    </div>
-                </div>
-            `).join('');
+                `;
+            }).join('');
         } else {
             recentContainer.innerHTML = app.getEmptyStateHtml('最近の予約はありません');
         }

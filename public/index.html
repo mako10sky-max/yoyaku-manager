@@ -67,12 +67,13 @@
         <section id="view-list" class="view-section">
             <div class="view-header">
                 <h2>予約一覧</h2>
+                <p class="subtitle">未確認項目がある予約には ⚠️ 要確認 が表示されます</p>
             </div>
             
             <div class="filter-bar">
                 <div class="search-wrap">
                     <span class="icon">🔍</span>
-                    <input type="text" id="filter-search" placeholder="ゲスト名で検索...">
+                    <input type="text" id="filter-search" placeholder="宿泊者名・予約者名・部屋番号で検索...">
                 </div>
                 <div class="filter-selects">
                     <select id="filter-status">
@@ -82,14 +83,24 @@
                         <option value="cancelled">キャンセル</option>
                     </select>
                     <select id="filter-source">
-                        <option value="">すべてのソース</option>
-                        <option value="website">自社サイト</option>
-                        <option value="ota">OTA</option>
-                        <option value="phone">電話</option>
-                        <option value="email">メール</option>
+                        <option value="">すべての予約経路</option>
                         <option value="line">LINE</option>
+                        <option value="email">Mail</option>
+                        <option value="front">店頭</option>
+                        <option value="phone">電話</option>
                         <option value="other">その他</option>
                     </select>
+                    <select id="filter-tier">
+                        <option value="">すべての価格対象</option>
+                        <option value="general">一般</option>
+                        <option value="s_guest">⭐ Sゲスト</option>
+                        <option value="unconfirmed">⚠️ 要確認</option>
+                    </select>
+                </div>
+                <div class="filter-quick-chips">
+                    <button type="button" id="filter-btn-unconfirmed" class="filter-chip">
+                        <span>⚠️</span> <span>要確認のみ表示</span>
+                    </button>
                 </div>
             </div>
 
@@ -98,25 +109,59 @@
             </div>
         </section>
 
+        <!-- Calendar View (宿泊カレンダー) -->
+        <section id="view-calendar" class="view-section">
+            <div class="view-header">
+                <h2>宿泊カレンダー</h2>
+                <p class="subtitle">部屋ごとの空室・宿泊状況と要確認マーク</p>
+            </div>
+
+            <div class="glass-card calendar-card">
+                <div class="cal-nav-header">
+                    <button class="cal-btn icon-btn" onclick="calendarView.prevMonth()">◀</button>
+                    <h3 id="calendar-month-title">2026年 9月</h3>
+                    <button class="cal-btn icon-btn" onclick="calendarView.nextMonth()">▶</button>
+                </div>
+                <div style="text-align:center; margin-bottom: 0.75rem;">
+                    <button class="btn-text-xs" onclick="calendarView.todayMonth()">今月に戻る</button>
+                </div>
+                
+                <div id="calendar-grid" class="calendar-grid-wrap">
+                    <!-- Calendar will be loaded here -->
+                </div>
+            </div>
+
+            <!-- 選択された日の予約詳細 -->
+            <div id="calendar-day-events" class="glass-card" style="margin-top: 1.25rem;">
+                <!-- Selected day reservations loaded here -->
+            </div>
+        </section>
+
         <!-- Add View -->
         <section id="view-add" class="view-section">
             <div class="view-header">
                 <h2>新規予約追加</h2>
+                <p class="subtitle">①〜⑥の項目を入力してください（未確認の項目は後から編集可能）</p>
             </div>
             
             <form id="form-add-reservation" class="form-container glass-card">
+                <!-- ① 宿泊者氏名の横に予約者氏名 -->
                 <div class="form-group">
-                    <label for="add-guest-name">ゲスト名 <span class="required">*</span></label>
+                    <label for="add-guest-name">① 宿泊者氏名 <span class="required">*</span></label>
                     <input type="text" id="add-guest-name" required placeholder="例: 山田 太郎">
                 </div>
                 <div class="form-group">
-                    <label for="add-booker-name">予約者名 (ゲストと異なる場合)</label>
-                    <input type="text" id="add-booker-name" placeholder="例: 鈴木 一郎">
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.25rem;">
+                        <label for="add-booker-name" style="margin-bottom:0;">予約者氏名 (未確認の場合は空欄)</label>
+                        <button type="button" class="btn-text-xs" onclick="reservations.copyGuestToBooker('add')">宿泊者と同じにする</button>
+                    </div>
+                    <input type="text" id="add-booker-name" placeholder="例: 鈴木 一郎 (宿泊者本人の場合は同じ)">
                 </div>
                 
+                <!-- ② 宿泊カレンダー (日程) -->
                 <div class="form-row">
                     <div class="form-group">
-                        <label for="add-check-in">チェックイン <span class="required">*</span></label>
+                        <label for="add-check-in">② チェックイン <span class="required">*</span></label>
                         <input type="date" id="add-check-in" required>
                     </div>
                     <div class="form-group">
@@ -125,65 +170,35 @@
                     </div>
                 </div>
 
+                <!-- ③ 部屋番号、人数 -->
                 <div class="form-row">
+                    <div class="form-group">
+                        <label for="add-room-number">③ 部屋番号 (例: 202, 貸切)</label>
+                        <input type="text" id="add-room-number" placeholder="例: 202 (未定なら空欄)">
+                    </div>
                     <div class="form-group">
                         <label for="add-num-guests">宿泊人数</label>
                         <input type="number" id="add-num-guests" min="1" value="2">
                     </div>
-                    <div class="form-group">
-                        <label for="add-room-type">部屋タイプ</label>
-                        <select id="add-room-type">
-                            <option value="single">シングル</option>
-                            <option value="double" selected>ダブル</option>
-                            <option value="twin">ツイン</option>
-                            <option value="suite">スイート</option>
-                            <option value="family">ファミリー</option>
-                            <option value="other">その他</option>
-                        </select>
-                    </div>
                 </div>
 
+                <!-- ④ 価格対象 (一般かSゲストかセレクト) -->
                 <div class="form-group">
-                    <label for="add-room-number">部屋番号</label>
-                    <input type="text" id="add-room-number" placeholder="例: 202">
+                    <label for="add-price-tier">④ 価格対象 (セレクト)</label>
+                    <select id="add-price-tier">
+                        <option value="unconfirmed">⚠️ 未確認 (要確認)</option>
+                        <option value="general" selected>一般</option>
+                        <option value="s_guest">⭐ Sゲスト</option>
+                    </select>
                 </div>
 
+                <!-- ⑤ アレルギー (セレクト) -->
                 <div class="form-group">
-                    <label for="add-price">料金 (円)</label>
-                    <input type="number" id="add-price" min="0" step="1000">
-                </div>
-
-                <div class="form-group">
-                    <label for="add-contact">連絡先 (電話/メール)</label>
-                    <input type="text" id="add-contact" placeholder="090-XXXX-XXXX">
-                </div>
-
-                <div class="form-row">
-                    <div class="form-group">
-                        <label for="add-status">ステータス</label>
-                        <select id="add-status">
-                            <option value="confirmed">確定</option>
-                            <option value="tentative">仮予約</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label for="add-source">予約経路</label>
-                        <select id="add-source">
-                            <option value="website">自社サイト</option>
-                            <option value="ota">OTA</option>
-                            <option value="phone">電話</option>
-                            <option value="email">メール</option>
-                            <option value="line">LINE</option>
-                            <option value="other">その他</option>
-                        </select>
-                    </div>
-                </div>
-
-                <div class="form-group">
-                    <label for="add-has-allergy">アレルギー有無</label>
-                    <select id="add-has-allergy" onchange="document.getElementById('add-allergy-detail-wrap').style.display = this.value === '1' ? 'block' : 'none'">
-                        <option value="0" selected>なし</option>
-                        <option value="1">あり ⚠️</option>
+                    <label for="add-allergy-status">⑤ アレルギー (セレクト)</label>
+                    <select id="add-allergy-status" onchange="document.getElementById('add-allergy-detail-wrap').style.display = this.value === 'has' ? 'block' : 'none'">
+                        <option value="unconfirmed">⚠️ 未確認 (要確認)</option>
+                        <option value="none" selected>なし</option>
+                        <option value="has">あり ⚠️</option>
                     </select>
                 </div>
 
@@ -192,9 +207,41 @@
                     <input type="text" id="add-allergies" placeholder="例: エビ・カニ、そば、卵">
                 </div>
 
+                <!-- ⑥ 予約経路 (LINE／Mail／店頭かセレクト) -->
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="add-source">⑥ 予約経路 (セレクト)</label>
+                        <select id="add-source">
+                            <option value="line">LINE</option>
+                            <option value="email">Mail</option>
+                            <option value="front" selected>店頭</option>
+                            <option value="phone">電話</option>
+                            <option value="other">その他</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="add-status">ステータス</label>
+                        <select id="add-status">
+                            <option value="confirmed" selected>確定</option>
+                            <option value="tentative">仮予約</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="add-price">料金 (円)</label>
+                        <input type="number" id="add-price" min="0" step="1000" placeholder="例: 12000">
+                    </div>
+                    <div class="form-group">
+                        <label for="add-contact">連絡先 (電話/メール)</label>
+                        <input type="text" id="add-contact" placeholder="090-XXXX-XXXX">
+                    </div>
+                </div>
+
                 <div class="form-group">
                     <label for="add-notes">社内メモ</label>
-                    <textarea id="add-notes" rows="3"></textarea>
+                    <textarea id="add-notes" rows="3" placeholder="特記事項やご要望など"></textarea>
                 </div>
 
                 <div class="form-actions">
@@ -241,6 +288,10 @@
             <span class="icon">📋</span>
             <span class="label">予約一覧</span>
         </button>
+        <button class="nav-item" data-target="view-calendar">
+            <span class="icon">📅</span>
+            <span class="label">カレンダー</span>
+        </button>
         <button class="nav-item" data-target="view-add">
             <span class="icon">➕</span>
             <span class="label">追加</span>
@@ -250,8 +301,9 @@
     <!-- Toast Container -->
     <div id="toast-container" class="toast-container"></div>
 
-    <script src="js/app.js?v=6"></script>
-    <script src="js/dashboard.js?v=6"></script>
-    <script src="js/reservations.js?v=6"></script>
+    <script src="js/app.js?v=7"></script>
+    <script src="js/dashboard.js?v=7"></script>
+    <script src="js/reservations.js?v=7"></script>
+    <script src="js/calendar.js?v=7"></script>
 </body>
 </html>

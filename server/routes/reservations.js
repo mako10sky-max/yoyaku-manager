@@ -8,6 +8,7 @@ router.get('/', (req, res) => {
         const filters = {
             status: req.query.status,
             source: req.query.source,
+            price_tier: req.query.price_tier,
             search: req.query.search,
             date_from: req.query.date_from,
             date_to: req.query.date_to
