@@ -4,11 +4,16 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="theme-color" content="#0f1117">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="予約管理">
+    <link rel="manifest" href="manifest.json">
+    <link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🏨</text></svg>">
     <title>Mrs. Ishii's Reservation Management System</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="css/style.css?v=11">
+    <link rel="stylesheet" href="css/style.css?v=12">
 </head>
 <body>
     <header class="app-header">
@@ -306,12 +311,16 @@
             
             <!-- Quick Actions (View Mode) -->
             <div id="detail-quick-actions" class="quick-actions glass-card">
-                <h3>ステータス変更</h3>
-                <div class="action-buttons">
-                    <button class="btn-status btn-confirm" onclick="reservations.updateStatus('confirmed')">確定にする</button>
-                    <button class="btn-status btn-cancel" onclick="reservations.updateStatus('cancelled')">キャンセル</button>
+                <button type="button" class="btn-primary" style="margin-bottom:0.75rem; font-weight:700; font-size:1rem; display:flex; align-items:center; justify-content:center; gap:0.5rem;" onclick="reservations.toggleEdit(true)">
+                    <span>✏️</span> <span>予約内容を変更・編集する</span>
+                </button>
+                <div class="detail-label" style="margin-bottom:0.4rem; font-weight:600; color:var(--text-secondary);">ワンタップ・ステータス変更</div>
+                <div class="action-buttons" style="display:flex; gap:0.5rem; flex-wrap:wrap;">
+                    <button class="btn-status btn-confirm" onclick="reservations.updateStatus('confirmed')">✅ 確定</button>
+                    <button class="btn-status" style="background:rgba(251,191,36,0.15); color:var(--warning); border:1px solid rgba(251,191,36,0.3);" onclick="reservations.updateStatus('tentative')">⏳ 仮予約</button>
+                    <button class="btn-status btn-cancel" onclick="reservations.updateStatus('cancelled')">❌ キャンセル</button>
                 </div>
-                <div class="danger-zone">
+                <div class="danger-zone" style="margin-top:1.25rem;">
                     <button class="btn-text danger" onclick="reservations.deleteCurrent()">この予約を削除</button>
                 </div>
             </div>
@@ -344,9 +353,9 @@
     <!-- Toast Container -->
     <div id="toast-container" class="toast-container"></div>
 
-    <script src="js/app.js?v=11"></script>
-    <script src="js/dashboard.js?v=11"></script>
-    <script src="js/reservations.js?v=11"></script>
-    <script src="js/calendar.js?v=11"></script>
+    <script src="js/app.js?v=12"></script>
+    <script src="js/dashboard.js?v=12"></script>
+    <script src="js/reservations.js?v=12"></script>
+    <script src="js/calendar.js?v=12"></script>
 </body>
 </html>

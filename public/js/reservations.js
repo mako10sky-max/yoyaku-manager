@@ -187,6 +187,14 @@ const reservations = {
                             <span class="field-val">${allergyDisplay}</span>
                         </div>
                     </div>
+
+                    <!-- 外出先クイック変更バー -->
+                    <div class="res-card-quick-bar" style="display:flex; justify-content:space-between; align-items:center; margin-top:0.5rem; padding-top:0.45rem; border-top:1px solid rgba(255,255,255,0.06);">
+                        <span style="font-size:0.75rem; color:var(--text-muted);">タップして詳細確認</span>
+                        <button type="button" class="btn-quick-edit" onclick="event.stopPropagation(); reservations.openEditDirect(${r.id});" style="display:inline-flex; align-items:center; gap:0.35rem; padding:0.4rem 0.85rem; font-size:0.85rem; font-weight:700; color:#fff; background:linear-gradient(135deg, rgba(99,102,241,0.35), rgba(139,92,246,0.35)); border:1px solid rgba(129,140,248,0.5); border-radius:8px; cursor:pointer;">
+                            <span>✏️</span> <span>変更・編集</span>
+                        </button>
+                    </div>
                 </div>
             `;
         }).join('');
@@ -266,6 +274,25 @@ const reservations = {
         await this.loadReservationDetail(id);
     },
 
+    // 外出先からワンタップで直接編集モードで開く
+    async openEditDirect(id) {
+        this.currentId = id;
+        this.isEditing = true;
+        const btn = document.getElementById('btn-edit-toggle');
+        if (btn) btn.textContent = '閲覧に戻る';
+        app.navigateTo('view-detail');
+        await this.loadReservationDetail(id);
+    },
+
+    // 編集モードと閲覧モードのトグル
+    toggleEdit(targetState) {
+        if (!this.currentId) return;
+        this.isEditing = typeof targetState === 'boolean' ? targetState : !this.isEditing;
+        const btn = document.getElementById('btn-edit-toggle');
+        if (btn) btn.textContent = this.isEditing ? '閲覧に戻る' : '編集';
+        this.loadReservationDetail(this.currentId);
+    },
+
     async loadReservationDetail(id) {
         const container = document.getElementById('detail-content');
         if (!container) return;
@@ -283,6 +310,15 @@ const reservations = {
                 // 編集フォームのレンダリング
                 container.innerHTML = `
                     <form id="form-edit-reservation" class="glass-card detail-container" onsubmit="reservations.saveEdit(event)">
+                        <!-- 外出先用・上部クイック保存バー -->
+                        <div style="display:flex; justify-content:space-between; align-items:center; padding-bottom:0.75rem; border-bottom:1px solid var(--border); margin-bottom:0.5rem;">
+                            <span style="font-size:0.95rem; font-weight:700; color:#8ab4f8;">✏️ 予約情報の変更</span>
+                            <div style="display:flex; gap:0.5rem;">
+                                <button type="button" class="btn-secondary" onclick="reservations.toggleEdit(false)" style="padding:0.45rem 0.8rem; font-size:0.85rem;">キャンセル</button>
+                                <button type="submit" class="btn-primary" style="width:auto; padding:0.45rem 1.1rem; font-size:0.88rem; font-weight:700;">💾 保存する</button>
+                            </div>
+                        </div>
+
                         <!-- ① 宿泊者氏名 ＆ 予約者氏名 -->
                         <div class="form-group">
                             <label>① 宿泊者氏名 <span class="required">*</span></label>
@@ -405,6 +441,13 @@ const reservations = {
                                 <span>✅</span> <strong>①〜⑤の全項目が確認済みです</strong>
                             </div>
                         `}
+
+                        <!-- 外出先クイック編集ボタン -->
+                        <div style="margin: 0.5rem 0 1rem 0;">
+                            <button type="button" class="btn-primary" style="display:flex; align-items:center; justify-content:center; gap:0.5rem; padding:0.85rem; font-size:1rem; font-weight:700; border-radius:12px; box-shadow:0 4px 14px rgba(99,102,241,0.35);" onclick="reservations.toggleEdit(true)">
+                                <span>✏️</span> <span>この予約を変更・編集する</span>
+                            </button>
+                        </div>
 
                         <!-- ① 宿泊者氏名の横に予約者氏名 -->
                         <div class="detail-item">

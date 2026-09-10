@@ -669,6 +669,18 @@ html {
     border-color: rgba(255, 255, 255, 0.35);
 }
 
+/* 外出先クイック編集ボタン */
+.btn-quick-edit {
+    cursor: pointer;
+    transition: var(--transition);
+    user-select: none;
+    -webkit-user-select: none;
+}
+.btn-quick-edit:active {
+    transform: scale(0.96);
+    opacity: 0.9;
+}
+
 /* 画面表示時は印刷エリアを完全非表示 */
 #print-area {
     display: none;

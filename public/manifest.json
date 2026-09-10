@@ -1,0 +1,17 @@
+﻿{
+  "name": "Mrs. Ishii's 予約管理システム",
+  "short_name": "予約管理",
+  "description": "宿泊予約管理システム（LINE連携・Googleカレンダー自動同期）",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0f1117",
+  "theme_color": "#6366f1",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🏨</text></svg>",
+      "sizes": "192x192 512x512",
+      "type": "image/svg+xml"
+    }
+  ]
+}

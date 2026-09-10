@@ -70,6 +70,12 @@ const dashboard = {
                             <span>👥 ${res.num_guests || 1}名</span>
                             <span>${(res.allergy_status === 'has' || res.has_allergy === 1) ? '<span style="color:var(--danger); font-weight:bold;">🚨 アレルギーあり</span>' : (res.allergy_status === 'none' ? 'アレルギーなし' : '<span class="warn-text">アレルギー要確認⚠️</span>')}</span>
                         </div>
+                        <div class="res-card-quick-bar" style="display:flex; justify-content:space-between; align-items:center; margin-top:0.5rem; padding-top:0.45rem; border-top:1px solid rgba(255,255,255,0.06);">
+                            <span style="font-size:0.75rem; color:var(--text-muted);">タップして詳細確認</span>
+                            <button type="button" class="btn-quick-edit" onclick="event.stopPropagation(); reservations.openEditDirect(${res.id});" style="display:inline-flex; align-items:center; gap:0.35rem; padding:0.35rem 0.8rem; font-size:0.82rem; font-weight:700; color:#fff; background:linear-gradient(135deg, rgba(99,102,241,0.35), rgba(139,92,246,0.35)); border:1px solid rgba(129,140,248,0.5); border-radius:8px; cursor:pointer;">
+                                <span>✏️</span> <span>変更・編集</span>
+                            </button>
+                        </div>
                     </div>
                 `;
             }).join('');
