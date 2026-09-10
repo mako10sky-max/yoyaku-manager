@@ -8,7 +8,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="css/style.css?v=10">
+    <link rel="stylesheet" href="css/style.css?v=11">
 </head>
 <body>
     <header class="app-header">
@@ -24,13 +24,33 @@
     <main class="app-main">
         <!-- Dashboard View -->
         <section id="view-dashboard" class="view-section active">
-            <div class="view-header">
-                <h2>ダッシュボード</h2>
-                <p class="subtitle">本日の概要と最近の予約</p>
+            <div class="view-header" style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 0.6rem;">
+                <div>
+                    <h2>ダッシュボード</h2>
+                    <p class="subtitle">本日の概要と最近の予約</p>
+                </div>
+                <button type="button" class="btn-primary" style="width: auto; padding: 0.55rem 1rem; font-size: 0.88rem; font-weight: 700; display: flex; align-items: center; gap: 0.4rem; border-radius: var(--radius-sm);" onclick="app.navigateTo('view-add')">
+                    <span>➕</span> <span>新規予約を登録</span>
+                </button>
             </div>
             
             <div class="stats-grid" id="dashboard-stats">
                 <!-- Stats will be loaded here -->
+            </div>
+
+            <!-- Quick Add Reservation Banner (店頭・電話・Mail等の手動予約用) -->
+            <div class="glass-card" style="margin-bottom: 1.5rem; background: linear-gradient(135deg, rgba(99, 102, 241, 0.18), rgba(139, 92, 246, 0.18)); border: 1px solid rgba(129, 140, 248, 0.35); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.75rem; padding: 1rem 1.25rem;">
+                <div style="flex: 1; min-width: 200px;">
+                    <div style="font-size: 1.05rem; font-weight: 700; color: #fff; display: flex; align-items: center; gap: 0.4rem;">
+                        <span>✍️</span> <span>新規予約の追加（店頭・電話・Mail）</span>
+                    </div>
+                    <div style="font-size: 0.82rem; color: #c7d2fe; margin-top: 0.25rem; line-height: 1.4;">
+                        LINE以外の予約も、ここから宿泊者・部屋・価格区分・アレルギーを入力して登録できます。
+                    </div>
+                </div>
+                <button type="button" class="btn-primary" style="width: auto; padding: 0.65rem 1.2rem; font-size: 0.92rem; font-weight: 700; display: flex; align-items: center; gap: 0.4rem;" onclick="app.navigateTo('view-add')">
+                    <span>➕</span> <span>新規予約を登録する</span>
+                </button>
             </div>
 
             <!-- Google Calendar Sync Banner -->
@@ -56,7 +76,10 @@
 
             <div class="section-title-wrap">
                 <h3>最近の予約</h3>
-                <button class="btn-text" onclick="app.navigateTo('view-list')">すべて見る</button>
+                <div style="display: flex; gap: 0.75rem; align-items: center;">
+                    <button class="btn-text" style="color: var(--accent-secondary); font-weight: 600;" onclick="app.navigateTo('view-add')">➕ 新規登録</button>
+                    <button class="btn-text" onclick="app.navigateTo('view-list')">すべて見る</button>
+                </div>
             </div>
             <div class="recent-list" id="dashboard-recent">
                 <!-- Recent reservations will be loaded here -->
@@ -153,9 +176,12 @@
 
         <!-- Add View -->
         <section id="view-add" class="view-section">
-            <div class="view-header">
-                <h2>新規予約追加</h2>
-                <p class="subtitle">①〜⑥の項目を入力してください（未確認の項目は後から編集可能）</p>
+            <div class="view-header with-back">
+                <button type="button" class="btn-back icon-btn" onclick="app.navigateTo('view-dashboard')" title="ダッシュボードに戻る">←</button>
+                <div>
+                    <h2>新規予約追加</h2>
+                    <p class="subtitle">店頭・電話・Mail等の手動予約（未確認の項目は後から編集可能）</p>
+                </div>
             </div>
             
             <form id="form-add-reservation" class="form-container glass-card">
@@ -318,9 +344,9 @@
     <!-- Toast Container -->
     <div id="toast-container" class="toast-container"></div>
 
-    <script src="js/app.js?v=10"></script>
-    <script src="js/dashboard.js?v=10"></script>
-    <script src="js/reservations.js?v=10"></script>
-    <script src="js/calendar.js?v=10"></script>
+    <script src="js/app.js?v=11"></script>
+    <script src="js/dashboard.js?v=11"></script>
+    <script src="js/reservations.js?v=11"></script>
+    <script src="js/calendar.js?v=11"></script>
 </body>
 </html>
