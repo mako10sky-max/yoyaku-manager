@@ -32,10 +32,94 @@ const app = {
         'has': { label: '⚠️ アレルギーあり', colorClass: 'allergy-has' },
         'unconfirmed': { label: '⚠️ 要確認', colorClass: 'allergy-unconfirmed' }
     },
+
+    STORAGE_KEY: 'yoyaku_reservations_backup_v1',
+
+    // ローカルストレージからバックアップ取得
+    getLocalBackup() {
+        try {
+            const raw = localStorage.getItem(this.STORAGE_KEY);
+            return raw ? JSON.parse(raw) : [];
+        } catch (e) {
+            console.error('Failed to get local backup:', e);
+            return [];
+        }
+    },
+
+    // ローカルストレージにバックアップ保存
+    saveLocalBackup(list) {
+        try {
+            if (Array.isArray(list)) {
+                localStorage.setItem(this.STORAGE_KEY, JSON.stringify(list));
+            }
+        } catch (e) {
+            console.error('Failed to save local backup:', e);
+        }
+    },
+
+    // 予約1件の追加/更新をバックアップに反映
+    upsertLocalBackup(item) {
+        if (!item || !item.id) return;
+        const list = this.getLocalBackup();
+        const idx = list.findIndex(r => r.id === item.id);
+        if (idx >= 0) {
+            list[idx] = { ...list[idx], ...item };
+        } else {
+            list.unshift(item);
+        }
+        this.saveLocalBackup(list);
+    },
+
+    // 予約1件の削除をバックアップに反映
+    removeLocalBackup(id) {
+        const list = this.getLocalBackup();
+        const filtered = list.filter(r => r.id !== id);
+        this.saveLocalBackup(filtered);
+    },
+
+    // サーバーとの双方向同期（Renderサーバー再起動・スリープ復旧時の自動リストア）
+    async syncWithServer() {
+        try {
+            const res = await this.apiGet('/api/reservations');
+            if (!res || !res.success || !Array.isArray(res.data)) return null;
+
+            const serverList = res.data;
+            const localList = this.getLocalBackup();
+
+            // ローカルストレージにサーバーにない予約があるか確認
+            const serverIds = new Set(serverList.map(r => r.id));
+            const missingOnServer = localList.filter(l => !serverIds.has(l.id));
+
+            if (missingOnServer.length > 0) {
+                // サーバー再起動等でデータが消えていた場合、ローカルから全予約を自動リストア！
+                console.log(`サーバーに未同期の予約 ${missingOnServer.length}件 を自動復元同期します`);
+                const syncRes = await this.apiPost('/api/reservations/sync', { items: localList });
+                if (syncRes && syncRes.success && Array.isArray(syncRes.data)) {
+                    this.saveLocalBackup(syncRes.data);
+                    this.showToast(`保存済み予約 ${missingOnServer.length}件 を自動復元しました`, 'info');
+                    return syncRes.data;
+                }
+            } else if (serverList.length > 0) {
+                // サーバーの最新一覧をローカルバックアップに保存
+                this.saveLocalBackup(serverList);
+            }
+            return serverList;
+        } catch (e) {
+            console.error('Sync error:', e);
+            return null;
+        }
+    },
     
-    init() {
+    async init() {
         this.setupNavigation();
+        // 起動時にサーバーとローカルストレージを同期（データ消失防止）
+        await this.syncWithServer();
         this.navigateTo('view-dashboard');
+
+        // タブに復帰した際にもバックグラウンドで同期
+        window.addEventListener('focus', () => {
+            this.syncWithServer();
+        });
     },
 
     setupNavigation() {
@@ -230,6 +314,63 @@ const app = {
         } else {
             prompt('以下のURLをコピーしてGoogleカレンダーに登録してください:', feedUrl);
         }
+    },
+
+    // 予約データをJSONファイルとしてダウンロード保存
+    async exportBackupJson() {
+        try {
+            const res = await this.apiGet('/api/reservations');
+            const list = (res && res.success && res.data) ? res.data : this.getLocalBackup();
+            if (!list || list.length === 0) {
+                this.showToast('バックアップする予約データがありません', 'warning');
+                return;
+            }
+            const blob = new Blob([JSON.stringify(list, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            const now = new Date().toISOString().split('T')[0];
+            a.href = url;
+            a.download = `yoyaku_backup_${now}.json`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+            this.showToast(`予約データ(${list.length}件)をバックアップ保存しました`, 'success');
+        } catch (e) {
+            console.error(e);
+            this.showToast('バックアップ保存に失敗しました', 'error');
+        }
+    },
+
+    // JSONバックアップファイルからデータを復元
+    async importBackupJson(event) {
+        const file = event.target.files && event.target.files[0];
+        if (!file) return;
+
+        const reader = new FileReader();
+        reader.onload = async (e) => {
+            try {
+                const list = JSON.parse(e.target.result);
+                if (!Array.isArray(list) || list.length === 0) {
+                    this.showToast('有効な予約バックアップファイルではありません', 'error');
+                    return;
+                }
+                const res = await this.apiPost('/api/reservations/sync', { items: list });
+                if (res && res.success) {
+                    this.saveLocalBackup(res.data);
+                    this.showToast(`バックアップから ${list.length}件の予約を復元しました！`, 'success');
+                    if (typeof reservations !== 'undefined') reservations.loadReservations();
+                    if (typeof dashboard !== 'undefined') dashboard.loadDashboard();
+                } else {
+                    this.showToast('サーバーへの復元に失敗しました', 'error');
+                }
+            } catch (err) {
+                console.error(err);
+                this.showToast('ファイル読み込みエラー: JSON形式が不正です', 'error');
+            }
+            event.target.value = '';
+        };
+        reader.readAsText(file);
     }
 };
 

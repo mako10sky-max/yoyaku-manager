@@ -231,9 +231,25 @@ const reservations = {
 
             const res = await app.apiPost('/api/reservations', data);
 
-            if (res && res.success) {
-                app.showToast('予約を追加しました', 'success');
+            if (res && res.success && res.data) {
+                // クライアント側ローカルストレージにも即座に保存（サーバー再起動時の消滅防止）
+                app.upsertLocalBackup(res.data);
+
+                // フィルターをすべてリセットして確実に新規予約が一覧に表示されるようにする
+                const s = document.getElementById('filter-search');
+                const st = document.getElementById('filter-status');
+                const so = document.getElementById('filter-source');
+                const tp = document.getElementById('filter-tier');
+                const btnUnconfirmed = document.getElementById('filter-btn-unconfirmed');
+                if (s) s.value = '';
+                if (st) st.value = '';
+                if (so) so.value = '';
+                if (tp) tp.value = '';
+                this.filterOnlyUnconfirmed = false;
+                if (btnUnconfirmed) btnUnconfirmed.classList.remove('active');
+
                 form.reset();
+                app.showToast(`${data.guest_name} 様の予約を登録しました！`, 'success');
                 app.navigateTo('view-list');
             } else {
                 app.showToast((res && res.error) || '追加に失敗しました', 'error');
@@ -508,7 +524,8 @@ const reservations = {
 
         const res = await app.apiPut(`/api/reservations/${this.currentId}`, updateData);
 
-        if (res && res.success) {
+        if (res && res.success && res.data) {
+            app.upsertLocalBackup(res.data);
             app.showToast('予約情報を更新しました', 'success');
             this.isEditing = false;
             const btn = document.getElementById('btn-edit-toggle');
@@ -522,7 +539,8 @@ const reservations = {
     async updateStatus(status) {
         if (!this.currentId) return;
         const res = await app.apiPut(`/api/reservations/${this.currentId}`, { status });
-        if (res && res.success) {
+        if (res && res.success && res.data) {
+            app.upsertLocalBackup(res.data);
             app.showToast(`ステータスを更新しました`, 'success');
             await this.loadReservationDetail(this.currentId);
         } else {
@@ -537,6 +555,7 @@ const reservations = {
         const res = await app.apiDelete(`/api/reservations/${this.currentId}`);
 
         if (res && res.success) {
+            app.removeLocalBackup(this.currentId);
             app.showToast('予約を削除しました', 'success');
             app.navigateTo('view-list');
         } else {

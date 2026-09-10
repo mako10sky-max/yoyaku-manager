@@ -58,6 +58,21 @@ router.get('/:id', (req, res) => {
     }
 });
 
+// 一括同期（バックアップからのリストア・マージ）
+router.post('/sync', (req, res) => {
+    try {
+        const { items } = req.body;
+        if (!items || !Array.isArray(items)) {
+            return res.status(400).json({ success: false, error: 'items array is required' });
+        }
+        const synced = db.syncReservations(items);
+        res.json({ success: true, data: synced, message: `${items.length}件の予約を同期しました` });
+    } catch (error) {
+        console.error('Error syncing reservations:', error);
+        res.status(500).json({ success: false, error: 'Failed to sync reservations' });
+    }
+});
+
 // 新規作成
 router.post('/', (req, res) => {
     try {

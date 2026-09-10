@@ -256,6 +256,75 @@ function getRecentReservations(limit = 5) {
     });
 }
 
+function syncReservations(items) {
+    if (!Array.isArray(items) || items.length === 0) return getAllReservations();
+
+    const insertStmt = db.prepare(`
+        INSERT INTO reservations (
+            id, guest_name, booker_name, check_in, check_out, num_guests,
+            room_type, room_number, price, contact, price_tier, allergy_status, has_allergy, allergies, notes, status, source, line_user_id, created_at, updated_at
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    `);
+
+    const updateStmt = db.prepare(`
+        UPDATE reservations SET
+            guest_name = ?, booker_name = ?, check_in = ?, check_out = ?, num_guests = ?,
+            room_type = ?, room_number = ?, price = ?, contact = ?, price_tier = ?, allergy_status = ?,
+            has_allergy = ?, allergies = ?, notes = ?, status = ?, source = ?, line_user_id = ?, updated_at = ?
+        WHERE id = ?
+    `);
+
+    const checkStmt = db.prepare('SELECT id FROM reservations WHERE id = ?');
+    const findSameStmt = db.prepare('SELECT id FROM reservations WHERE guest_name = ? AND check_in = ? AND check_out = ?');
+
+    const transaction = db.transaction((list) => {
+        for (const item of list) {
+            if (!item.guest_name || !item.check_in || !item.check_out) continue;
+
+            const existingById = item.id ? checkStmt.get(item.id) : null;
+            const existingByMatch = !existingById ? findSameStmt.get(item.guest_name, item.check_in, item.check_out) : null;
+            const targetId = existingById ? item.id : (existingByMatch ? existingByMatch.id : null);
+
+            const allergyStatus = item.allergy_status || (item.has_allergy === 1 ? 'has' : (item.allergies ? 'has' : 'unconfirmed'));
+            const hasAllergy = (allergyStatus === 'has' || item.has_allergy) ? 1 : 0;
+            const priceTier = item.price_tier || 'unconfirmed';
+            const updatedAt = item.updated_at || new Date().toISOString();
+
+            if (targetId) {
+                // 既存レコードの更新
+                updateStmt.run(
+                    item.guest_name, item.booker_name || '', item.check_in, item.check_out, item.num_guests || 1,
+                    item.room_type || 'standard', item.room_number || '', item.price || 0, item.contact || '',
+                    priceTier, allergyStatus, hasAllergy, item.allergies || '', item.notes || '',
+                    item.status || 'confirmed', item.source || 'other', item.line_user_id || null, updatedAt,
+                    targetId
+                );
+            } else {
+                // 新規挿入（IDが指定されていればそのIDを使用、なければ自動採番）
+                const createdAt = item.created_at || new Date().toISOString();
+                if (item.id) {
+                    try {
+                        insertStmt.run(
+                            item.id, item.guest_name, item.booker_name || '', item.check_in, item.check_out, item.num_guests || 1,
+                            item.room_type || 'standard', item.room_number || '', item.price || 0, item.contact || '',
+                            priceTier, allergyStatus, hasAllergy, item.allergies || '', item.notes || '',
+                            item.status || 'confirmed', item.source || 'other', item.line_user_id || null, createdAt, updatedAt
+                        );
+                    } catch (e) {
+                        // ID競合時はIDなしで追加
+                        createReservation(item);
+                    }
+                } else {
+                    createReservation(item);
+                }
+            }
+        }
+    });
+
+    transaction(items);
+    return getAllReservations();
+}
+
 module.exports = {
     getAllReservations,
     getReservationById,
@@ -263,5 +332,6 @@ module.exports = {
     updateReservation,
     deleteReservation,
     getStats,
-    getRecentReservations
+    getRecentReservations,
+    syncReservations
 };

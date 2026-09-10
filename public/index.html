@@ -8,7 +8,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="css/style.css?v=9">
+    <link rel="stylesheet" href="css/style.css?v=10">
 </head>
 <body>
     <header class="app-header">
@@ -70,9 +70,18 @@
                     <h2>予約一覧</h2>
                     <p class="subtitle">未確認項目がある予約には ⚠️ 要確認 が表示されます</p>
                 </div>
-                <button type="button" class="btn-secondary btn-print-export" onclick="reservations.exportPdf()" title="予約一覧をPDF保存・印刷します">
-                    <span>📄</span> <span>PDF出力 / 印刷</span>
-                </button>
+                <div style="display: flex; gap: 0.35rem; flex-wrap: wrap;">
+                    <button type="button" class="btn-secondary btn-print-export" onclick="reservations.exportPdf()" title="予約一覧をPDF保存・印刷します">
+                        <span>📄</span> <span>PDF出力</span>
+                    </button>
+                    <button type="button" class="btn-secondary btn-print-export" onclick="app.exportBackupJson()" title="予約データを端末にバックアップ保存します">
+                        <span>💾</span> <span>保存</span>
+                    </button>
+                    <button type="button" class="btn-secondary btn-print-export" onclick="document.getElementById('input-import-backup').click()" title="バックアップファイルから復元します">
+                        <span>📥</span> <span>復元</span>
+                    </button>
+                    <input type="file" id="input-import-backup" accept=".json" style="display:none;" onchange="app.importBackupJson(event)">
+                </div>
             </div>
             
             <div class="filter-bar">
@@ -309,9 +318,9 @@
     <!-- Toast Container -->
     <div id="toast-container" class="toast-container"></div>
 
-    <script src="js/app.js?v=9"></script>
-    <script src="js/dashboard.js?v=9"></script>
-    <script src="js/reservations.js?v=9"></script>
-    <script src="js/calendar.js?v=9"></script>
+    <script src="js/app.js?v=10"></script>
+    <script src="js/dashboard.js?v=10"></script>
+    <script src="js/reservations.js?v=10"></script>
+    <script src="js/calendar.js?v=10"></script>
 </body>
 </html>
